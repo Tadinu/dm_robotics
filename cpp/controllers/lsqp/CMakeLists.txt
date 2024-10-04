@@ -36,10 +36,11 @@ set(HDRS
   ${CMAKE_CURRENT_SOURCE_DIR}/include/dm_robotics/controllers/lsqp/joint_velocity_filter.h
 )
 add_library(dmr_controllers_lsqp)
+set_target_properties(dmr_controllers_lsqp PROPERTIES PUBLIC_HEADER "${HDRS}")
 target_sources(dmr_controllers_lsqp PUBLIC ${HDRS} PRIVATE ${SRCS})
 target_include_directories(dmr_controllers_lsqp
   PUBLIC
-    $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include>
+    $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/${CMAKE_INSTALL_INCLUDEDIR}>
 )
 target_link_libraries(dmr_controllers_lsqp
   PUBLIC
@@ -57,6 +58,19 @@ target_link_libraries(dmr_controllers_lsqp
   PRIVATE
     Eigen3::Eigen
 )
+
+# Install the libraries
+set(DMR_LSQP_INSTALL_PUBLIC 1)
+if (DMR_LSQP_INSTALL_PUBLIC)
+  install(
+          TARGETS dmr_controllers_lsqp
+          EXPORT dmr_controllers_lsqp
+          RUNTIME DESTINATION "${CMAKE_INSTALL_BINDIR}" COMPONENT runtime
+          LIBRARY DESTINATION "${CMAKE_INSTALL_LIBDIR}" COMPONENT runtime
+          ARCHIVE DESTINATION "${CMAKE_INSTALL_LIBDIR}" COMPONENT dev
+          PUBLIC_HEADER DESTINATION "${CMAKE_INSTALL_INCLUDEDIR}/lsqp/" COMPONENT dev
+  )
+endif ()
 
 # Tests
 if(DM_ROBOTICS_BUILD_TESTS)
