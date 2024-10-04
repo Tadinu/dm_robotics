@@ -22,7 +22,7 @@ set(CMAKE_CXX_STANDARD 17)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 set(CMAKE_CXX_EXTENSIONS OFF)
 set(CMAKE_POSITION_INDEPENDENT_CODE ON)
-add_compile_options(-Wno-stringop-truncation)
+#add_compile_options(-Wno-stringop-truncation)
 
 # To build a manylinux compatible wheel:
 # set DM_ROBOTICS_BUILD_WHEEL True
@@ -50,11 +50,11 @@ if( DM_ROBOTICS_BUILD_WHEEL )
 
 endif()
 
-set(DMR_PYTHON_VERSION "3.10" CACHE STRING "Python version.")
-set(PYTHONVERSION ${DMR_PYTHON_VERSION})
-add_definitions(-DPYBIND11_PYTHON_VERSION="${PYTHONVERSION}")
-set(PYBIND11_PYTHON_VERSION ${PYTHONVERSION} CACHE STRING "")
-set(PYBIND11_PYTHON_VERSION ${PYTHONVERSION})
+#set(DMR_PYTHON_VERSION "3.10" CACHE STRING "Python version.")
+#set(PYTHONVERSION ${DMR_PYTHON_VERSION})
+#add_definitions(-DPYBIND11_PYTHON_VERSION="${PYTHONVERSION}")
+#set(PYBIND11_PYTHON_VERSION ${PYTHONVERSION} CACHE STRING "")
+#set(PYBIND11_PYTHON_VERSION ${PYTHONVERSION})
 
 if(NOT CMAKE_CONFIGURATION_TYPES)
   if(NOT CMAKE_BUILD_TYPE)
@@ -94,10 +94,10 @@ option(DM_ROBOTICS_BUILD_dmr_controllers
   "Whether to build the `dmr_controllers` library." ON
 )
 option(DM_ROBOTICS_BUILD_dmr_controllers_python
-  "Whether to build Python bindings for the `dmr_controllers` library." ON
+  "Whether to build Python bindings for the `dmr_controllers` library." OFF
 )
 option(DM_ROBOTICS_BUILD_TESTS
-  "Whether to build `dm_robotics` tests." ON
+  "Whether to build `dm_robotics` tests." OFF
 )
 option(DM_ROBOTICS_BUILD_EXAMPLES
   "Whether to build `dm_robotics` examples." ON
@@ -178,23 +178,27 @@ if (DM_ROBOTICS_BUILD_dmr_lsqp
   )
 endif()
 
-# MuJoco 3.1.6
-if (DM_ROBOTICS_MUJOCO_TAR)
-  message(STATUS "dm_robotics: MuJoCo TAR file specified at `${DM_ROBOTICS_MUJOCO_TAR}`.")
-else()
-  message(STATUS "dm_robotics: MuJoCo TAR file not specified. Downloading MuJoCo....")
-  file(DOWNLOAD https://github.com/google-deepmind/mujoco/releases/download/3.1.6/mujoco-3.1.6-linux-x86_64.tar.gz mujoco.tar.gz)
-  set(DM_ROBOTICS_MUJOCO_TAR mujoco.tar.gz)
-endif()
-file(ARCHIVE_EXTRACT INPUT ${DM_ROBOTICS_MUJOCO_TAR} DESTINATION mujoco_bin)
-message("Checking headers in ${CMAKE_CURRENT_BINARY_DIR}/mujoco_bin/mujoco-3.1.6/include/mujoco")
-file(GLOB_RECURSE MUJOCO_HEADERS RELATIVE "${CMAKE_CURRENT_BINARY_DIR}" "${CMAKE_CURRENT_BINARY_DIR}/mujoco_bin/mujoco-3.1.6/include/mujoco/*.h")
-message("Mujoco headers: ${MUJOCO_HEADERS}")
-add_library(mujoco SHARED IMPORTED)
-set_target_properties(mujoco PROPERTIES
-             IMPORTED_LOCATION ${CMAKE_CURRENT_BINARY_DIR}/mujoco_bin/mujoco-3.1.6/lib/libmujoco.so)
-set_target_properties(mujoco PROPERTIES PUBLIC_HEADER "${MUJOCO_HEADERS}"
- INTERFACE_INCLUDE_DIRECTORIES "${CMAKE_CURRENT_BINARY_DIR}/mujoco_bin/mujoco-3.1.6/include"
+# MuJoco
+# Ref: https://github.com/google-deepmind/mujoco/blob/main/simulate/cmake/SimulateDependencies.cmake
+set(MUJOCO_BUILD_EXAMPLES OFF)
+set(MUJOCO_BUILD_TESTS OFF)
+set(MUJOCO_BUILD_PYTHON OFF)
+set(MUJOCO_TEST_PYTHON_UTIL OFF)
+
+findorfetch(
+    USE_SYSTEM_PACKAGE
+    MUJOCO_SIMULATE_USE_SYSTEM_MUJOCO
+    PACKAGE_NAME
+    mujoco
+    LIBRARY_NAME
+    mujoco
+    GIT_REPO
+    https://github.com/google-deepmind/mujoco.git
+    GIT_TAG
+    main
+    TARGETS
+    mujoco
+    EXCLUDE_FROM_ALL
 )
 
 # osqp-cpp
@@ -259,3 +263,5 @@ endif()
 if (DM_ROBOTICS_BUILD_dmr_controllers_python)
 add_subdirectory(controllers_py)
 endif()
+
+add_subdirectory(simulate)

@@ -20,11 +20,11 @@ project(dmr_mujoco
 
 # Pick up the version of mujoco to use from the environment,
 # with an appropriate default if unset.
-set(MUJOCO_VERSION $ENV{MUJOCO_VERSION} CACHE STRING "Mujoco library version")
-if(NOT MUJOCO_VERSION)
-    set(MUJOCO_VERSION "3.1.6")
-endif()
-message ("MUJOCO_VERSION: ${MUJOCO_VERSION}")
+#set(MUJOCO_VERSION $ENV{MUJOCO_VERSION} CACHE STRING "Mujoco library version")
+#if(NOT MUJOCO_VERSION)
+#    set(MUJOCO_VERSION "3.1.6")
+#endif()
+#message ("MUJOCO_VERSION: ${MUJOCO_VERSION}")
 
 # Generate defs.h from configuration with the MuJoCo constants.
 set(DMR_DMCONTROL_SUITE_PATH "$ENV{HOME}/.local/lib/python3.10/site-packages/dm_control/suite" CACHE STRING "Path to `dm_control.suite`")
@@ -44,6 +44,7 @@ set(HDRS
   ${CMAKE_CURRENT_BINARY_DIR}/include/dm_robotics/mujoco/defs.h
 )
 add_library(dmr_mujoco)
+set_target_properties(dmr_mujoco PROPERTIES PUBLIC_HEADER "${HDRS}")
 target_sources(dmr_mujoco PUBLIC ${HDRS} PRIVATE ${SRCS})
 target_include_directories(dmr_mujoco
   PUBLIC
@@ -59,7 +60,7 @@ target_link_libraries(dmr_mujoco
     absl::strings
     absl::status
     absl::statusor
-    mujoco
+    mujoco::mujoco
   PRIVATE
     dmr_support
     Eigen3::Eigen
@@ -121,3 +122,16 @@ if(DM_ROBOTICS_BUILD_TESTS)
   gtest_discover_tests(dmr_mujoco_utils_test)
 
 endif()
+
+# Install the libraries
+set(DMR_MUJOCO_INSTALL_PUBLIC 1)
+if (DMR_MUJOCO_INSTALL_PUBLIC)
+  install(
+          TARGETS dmr_mujoco
+          EXPORT dmr_mujoco
+          RUNTIME DESTINATION "${CMAKE_INSTALL_BINDIR}" COMPONENT runtime
+          LIBRARY DESTINATION "${CMAKE_INSTALL_LIBDIR}" COMPONENT runtime
+          ARCHIVE DESTINATION "${CMAKE_INSTALL_LIBDIR}" COMPONENT dev
+          PUBLIC_HEADER DESTINATION "${CMAKE_INSTALL_INCLUDEDIR}/mujoco/" COMPONENT dev
+  )
+endif ()

@@ -30,14 +30,16 @@ set(HDRS
   ${CMAKE_CURRENT_SOURCE_DIR}/include/dm_robotics/least_squares_qp/common/minimize_norm_task.h
 )
 add_library(dmr_lsqp_common)
+set_target_properties(dmr_lsqp_common PROPERTIES PUBLIC_HEADER "${HDRS}")
 target_sources(dmr_lsqp_common PUBLIC ${HDRS} PRIVATE ${SRCS})
 target_include_directories(dmr_lsqp_common
   PUBLIC
     $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include>
-    $<INSTALL_INTERFACE:include>
+    $<INSTALL_INTERFACE:${CMAKE_INSTALL_INCLUDEDIR}>
   PRIVATE
     ${CMAKE_CURRENT_SOURCE_DIR}/src
 )
+
 target_link_libraries(dmr_lsqp_common
   PUBLIC
     absl::span
@@ -51,6 +53,19 @@ target_link_libraries(dmr_lsqp_common
   PRIVATE
     Eigen3::Eigen
 )
+
+# Install the libraries
+set(DMR_LSQP_COMMON_INSTALL_PUBLIC 1)
+if (DMR_LSQP_COMMON_INSTALL_PUBLIC)
+  install(
+          TARGETS dmr_lsqp_common
+          EXPORT dmr_lsqp_common
+          RUNTIME DESTINATION "${CMAKE_INSTALL_BINDIR}" COMPONENT runtime
+          LIBRARY DESTINATION "${CMAKE_INSTALL_LIBDIR}" COMPONENT runtime
+          ARCHIVE DESTINATION "${CMAKE_INSTALL_LIBDIR}" COMPONENT dev
+          PUBLIC_HEADER DESTINATION "${CMAKE_INSTALL_INCLUDEDIR}/common/" COMPONENT dev
+  )
+endif ()
 
 # Tests
 if(DM_ROBOTICS_BUILD_TESTS)
